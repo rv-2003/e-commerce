@@ -11,7 +11,7 @@ import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import MyOrders from "./pages/MyOrders";
-import Profile from "./pages/Profile";
+// import Profile from "./pages/Profile";
 import AdminCategories from "./pages/Admin/AdminCategories";
 
 import PrivateRoute from "./components/PrivateRoute";
@@ -31,7 +31,7 @@ export default function App() {
         <Route path="/cart" element={<PrivateRoute><Cart /></PrivateRoute>} />
         <Route path="/checkout" element={<PrivateRoute><Checkout /></PrivateRoute>} />
         <Route path="/my-orders" element={<PrivateRoute><MyOrders /></PrivateRoute>} />
-        <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+        {/* <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} /> */}
         <Route
   path="/admin"
   element={
