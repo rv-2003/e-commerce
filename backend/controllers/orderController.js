@@ -8,57 +8,48 @@ function calcPrices(orderItems) {
     0
   );
 
-  const shippingPrice = itemsPrice > 100 ? 0 : 10;
-  const taxRate = 0.15;
-  const taxPrice = (itemsPrice * taxRate).toFixed(2);
-
-  const totalPrice = (
-    itemsPrice +
-    shippingPrice +
-    parseFloat(taxPrice)
-  ).toFixed(2);
+  const totalPrice = itemsPrice.toFixed(2); // total = sum of items only
 
   return {
-    itemsPrice: itemsPrice.toFixed(2),
-    shippingPrice: shippingPrice.toFixed(2),
-    taxPrice,
+    itemsPrice: totalPrice,
     totalPrice,
   };
 }
+
 
 const createOrder = async (req, res) => {
   try {
     const { orderItems, shippingAddress, paymentMethod } = req.body;
 
-    if (orderItems && orderItems.length === 0) {
-      res.status(400);
-      throw new Error("No order items");
+    if (!orderItems || orderItems.length === 0) {
+      return res.status(400).json({ error: "No order items" });
     }
 
     const itemsFromDB = await Product.find({
-      _id: { $in: orderItems.map((x) => x._id) },
+      _id: { $in: orderItems.map((x) => x.product) },
     });
 
     const dbOrderItems = orderItems.map((itemFromClient) => {
       const matchingItemFromDB = itemsFromDB.find(
-        (itemFromDB) => itemFromDB._id.toString() === itemFromClient._id
+        (itemFromDB) => itemFromDB._id.toString() === itemFromClient.product
       );
 
       if (!matchingItemFromDB) {
-        res.status(404);
-        throw new Error(`Product not found: ${itemFromClient._id}`);
+        return res
+          .status(404)
+          .json({ error: `Product not found: ${itemFromClient.product}` });
       }
 
       return {
-        ...itemFromClient,
-        product: itemFromClient._id,
+        name: matchingItemFromDB.name,
+        qty: itemFromClient.qty,
         price: matchingItemFromDB.price,
-        _id: undefined,
+        image: matchingItemFromDB.image,
+        product: matchingItemFromDB._id,
       };
     });
 
-    const { itemsPrice, taxPrice, shippingPrice, totalPrice } =
-      calcPrices(dbOrderItems);
+    const { itemsPrice, totalPrice } = calcPrices(dbOrderItems);
 
     const order = new Order({
       orderItems: dbOrderItems,
@@ -66,8 +57,6 @@ const createOrder = async (req, res) => {
       shippingAddress,
       paymentMethod,
       itemsPrice,
-      taxPrice,
-      shippingPrice,
       totalPrice,
     });
 
@@ -77,6 +66,7 @@ const createOrder = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 const getAllOrders = async (req, res) => {
   try {
@@ -161,26 +151,29 @@ const markOrderAsPaid = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
 
-    if (order) {
-      order.isPaid = true;
-      order.paidAt = Date.now();
-      order.paymentResult = {
-        id: req.body.id,
-        status: req.body.status,
-        update_time: req.body.update_time,
-        email_address: req.body.payer.email_address,
-      };
-
-      const updateOrder = await order.save();
-      res.status(200).json(updateOrder);
-    } else {
-      res.status(404);
-      throw new Error("Order not found");
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
     }
+
+    // Mark order as paid
+    order.isPaid = true;
+    order.paidAt = new Date();
+
+    // Optional: simple payment result
+    order.paymentResult = {
+      id: `ADMIN-${order._id}`, // just a simple identifier
+      status: "Paid by Admin",
+      update_time: new Date().toISOString(),
+      email_address: "admin@shop.com",
+    };
+
+    const updatedOrder = await order.save();
+    res.status(200).json(updatedOrder);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 const markOrderAsDelivered = async (req, res) => {
   try {

@@ -7,18 +7,45 @@ import {
   Button,
   Box,
   Avatar,
+  Divider,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  CircularProgress,
 } from "@mui/material";
 import Navbar from "../components/Navbar";
-import { getProfile, updateProfile } from "../api/userApi";
+import { getProfile, updateProfile } from "../api/UserApi";
+import API from "../api/axios"; // your axios instance
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
-  const [user, setUser] = useState({ name: "", email: "" });
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
+  const [user, setUser] = useState({ name: "", email: "" });
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+
+  // Load profile + orders
   useEffect(() => {
-    getProfile()
-      .then((res) => setUser(res.data))
-      .catch(() => alert("Failed to load profile"));
+    const fetchData = async () => {
+      try {
+        const profileRes = await getProfile();
+        setUser(profileRes.data);
+
+        const orderRes = await API.get("/orders/mine", { withCredentials: true });
+        setOrders(orderRes.data);
+      } catch (err) {
+        alert("Failed to load profile or orders");
+        console.error(err);
+      } finally {
+        setOrdersLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const handleChange = (e) => {
@@ -40,8 +67,10 @@ const Profile = () => {
   return (
     <>
       <Navbar />
-      <Container sx={{ mt: 12, maxWidth: "sm" }}>
+
+      <Container sx={{ mt: 12, maxWidth: "md" }}>
         <Paper elevation={6} sx={{ p: 4, borderRadius: 3 }}>
+          {/* ================= PROFILE SECTION ================= */}
           <Box display="flex" flexDirection="column" alignItems="center" mb={3}>
             <Avatar sx={{ width: 80, height: 80, mb: 1 }}>
               {user.name?.charAt(0)}
@@ -78,6 +107,58 @@ const Profile = () => {
           >
             {loading ? "Updating..." : "Update Profile"}
           </Button>
+
+          {/* ================= ORDER HISTORY ================= */}
+          <Divider sx={{ my: 4 }} />
+
+          <Typography variant="h6" fontWeight="bold" gutterBottom>
+            My Orders
+          </Typography>
+
+          {ordersLoading ? (
+            <Box textAlign="center" mt={2}>
+              <CircularProgress />
+            </Box>
+          ) : orders.length === 0 ? (
+            <Typography color="text.secondary">No orders found.</Typography>
+          ) : (
+            <Paper sx={{ overflowX: "auto" }}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Order ID</TableCell>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Total</TableCell>
+                    <TableCell>Paid</TableCell>
+                    <TableCell>Delivered</TableCell>
+                    <TableCell>Details</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {orders.map((order) => (
+                    <TableRow key={order._id}>
+                      <TableCell>{order._id.slice(0, 8)}</TableCell>
+                      <TableCell>
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>₹{order.totalPrice}</TableCell>
+                      <TableCell>{order.isPaid ? "✅" : "❌"}</TableCell>
+                      <TableCell>{order.isDelivered ? "✅" : "❌"}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => navigate(`/order/${order._id}`)}
+                        >
+                          Details
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Paper>
+          )}
         </Paper>
       </Container>
     </>
@@ -85,3 +166,5 @@ const Profile = () => {
 };
 
 export default Profile;
+
+

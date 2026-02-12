@@ -4,20 +4,14 @@ const API = axios.create({
   baseURL: import.meta.env.PROD
     ? import.meta.env.VITE_API_URL
     : "http://localhost:5000/api",
-  withCredentials: true,
+  withCredentials: true, // ✅ send cookies
 });
 
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
+// REMOVE Authorization header since backend uses cookies
+// API.interceptors.request.use(...)  <-- remove this block
 
 export default API;
+
 
 
 

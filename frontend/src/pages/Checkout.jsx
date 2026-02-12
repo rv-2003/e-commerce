@@ -7,26 +7,40 @@ import {
   Box,
   Button,
   Divider,
+  TextField,
+  MenuItem,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { createOrder } from "../api/orderApi";
 
-const Checkout = ({ user }) => {
+const Checkout = ({ user: propUser }) => {
   const navigate = useNavigate();
+
+  // User state: from prop or localStorage
+  const [user, setUser] = useState(
+    propUser || JSON.parse(localStorage.getItem("user")) || null
+  );
+
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Load cart from localStorage
-  const loadCart = () => {
+  const [shippingAddress, setShippingAddress] = useState({
+    address: "",
+    city: "",
+    postalCode: "",
+    country: "",
+  });
+
+  const [paymentMethod, setPaymentMethod] = useState("COD");
+
+  // Load cart from localStorage on mount
+  useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
     setCart(storedCart);
-  };
-
-  useEffect(() => {
-    loadCart();
   }, []);
 
+  // Update cart both in state and localStorage
   const updateCart = (updatedCart) => {
     setCart(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
@@ -41,9 +55,7 @@ const Checkout = ({ user }) => {
 
   const decreaseQty = (id) => {
     const updatedCart = cart
-      .map((item) =>
-        item._id === id ? { ...item, qty: item.qty - 1 } : item
-      )
+      .map((item) => (item._id === id ? { ...item, qty: item.qty - 1 } : item))
       .filter((item) => item.qty > 0);
     updateCart(updatedCart);
   };
@@ -55,7 +67,7 @@ const Checkout = ({ user }) => {
 
   const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
-  // Place order using backend
+  // Place order
   const placeOrder = async () => {
     if (!user) {
       alert("⚠️ You must be logged in to place an order!");
@@ -64,23 +76,32 @@ const Checkout = ({ user }) => {
     }
 
     if (cart.length === 0) {
-      alert("Your cart is empty");
+      alert("Your cart is empty!");
+      return;
+    }
+
+    const { address, city, postalCode, country } = shippingAddress;
+    if (!address || !city || !postalCode || !country) {
+      alert("Please fill in your shipping address!");
       return;
     }
 
     try {
       setLoading(true);
+
+      // Prepare order items for backend
       const orderItems = cart.map((item) => ({
         product: item._id,
-        name: item.name,
         qty: item.qty,
+        name: item.name,
         price: item.price,
         image: item.image,
       }));
 
       const orderData = {
         orderItems,
-        totalPrice: total,
+        shippingAddress,
+        paymentMethod,
       };
 
       await createOrder(orderData);
@@ -88,10 +109,13 @@ const Checkout = ({ user }) => {
       alert("🎉 Order placed successfully!");
       localStorage.removeItem("cart");
       setCart([]);
-      navigate("/orders"); // Redirect to order history
+      navigate("/my-orders");
     } catch (error) {
       console.error(error);
-      alert("❌ Failed to place order");
+      alert(
+        "❌ Failed to place order: " +
+          (error.response?.data?.error || error.message)
+      );
     } finally {
       setLoading(false);
     }
@@ -100,7 +124,6 @@ const Checkout = ({ user }) => {
   return (
     <>
       <Navbar />
-
       <Container sx={{ mt: 12, mb: 5 }}>
         <Typography variant="h4" gutterBottom>
           Checkout
@@ -140,6 +163,73 @@ const Checkout = ({ user }) => {
                   <Typography fontWeight={600}>₹{item.price * item.qty}</Typography>
                 </Paper>
               ))}
+
+              {/* Shipping Address */}
+              <Paper sx={{ p: 3, mt: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Shipping Address
+                </Typography>
+                <TextField
+                  fullWidth
+                  label="Address"
+                  value={shippingAddress.address}
+                  onChange={(e) =>
+                    setShippingAddress({
+                      ...shippingAddress,
+                      address: e.target.value,
+                    })
+                  }
+                  sx={{ mb: 2 }}
+                />
+                <TextField
+                  fullWidth
+                  label="City"
+                  value={shippingAddress.city}
+                  onChange={(e) =>
+                    setShippingAddress({ ...shippingAddress, city: e.target.value })
+                  }
+                  sx={{ mb: 2 }}
+                />
+                <TextField
+                  fullWidth
+                  label="Postal Code"
+                  value={shippingAddress.postalCode}
+                  onChange={(e) =>
+                    setShippingAddress({
+                      ...shippingAddress,
+                      postalCode: e.target.value,
+                    })
+                  }
+                  sx={{ mb: 2 }}
+                />
+                <TextField
+                  fullWidth
+                  label="Country"
+                  value={shippingAddress.country}
+                  onChange={(e) =>
+                    setShippingAddress({
+                      ...shippingAddress,
+                      country: e.target.value,
+                    })
+                  }
+                  sx={{ mb: 2 }}
+                />
+              </Paper>
+
+              {/* Payment Method */}
+              <Paper sx={{ p: 3, mt: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Payment Method
+                </Typography>
+                <TextField
+                  select
+                  fullWidth
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                >
+                  <MenuItem value="COD">Cash on Delivery</MenuItem>
+                </TextField>
+              </Paper>
             </Grid>
 
             {/* Order Summary */}
@@ -170,4 +260,9 @@ const Checkout = ({ user }) => {
 };
 
 export default Checkout;
+
+
+
+
+
 
