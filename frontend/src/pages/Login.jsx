@@ -77,18 +77,6 @@ export default function Login() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-
-        <Box sx={{ textAlign: "right", mt: 1 }}>
-          <Link
-            component="button"
-            variant="body2"
-            onClick={() => navigate("/forgot-password")}
-            sx={{ textDecoration: "none" }}
-          >
-            Forgot password?
-          </Link>
-        </Box>
-
         <Button
           variant="contained"
           fullWidth
