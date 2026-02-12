@@ -13,23 +13,22 @@ import uploadRoutes from "./routes/uploadRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 
 dotenv.config();
-const port = process.env.PORT || 5000;
-
 connectDB();
 
 const app = express();
-const __dirname = path.resolve();
+const port = process.env.PORT || 5000;
 
 // Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// ✅ CORS (IMPORTANT — replace with your real Vercel URL)
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://your-vercel-app.vercel.app",
+      "https://e-commerce-001-nine.vercel.app", // <-- replace if different
     ],
     credentials: true,
   })
@@ -42,21 +41,15 @@ app.use("/api/products", productRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/orders", orderRoutes);
 
-// Static Uploads
-app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
-
-// Serve frontend
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
-
-app.use((req, res, next) => {
-  if (!req.path.startsWith("/api")) {
-    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
-  } else {
-    next();
-  }
+// Root route (optional health check)
+app.get("/", (req, res) => {
+  res.send("API is running...");
 });
 
-export default app;
+// Start Server
+app.listen(port, () => {
+  console.log(`🚀 Server running on port ${port}`);
+});
 
 
 

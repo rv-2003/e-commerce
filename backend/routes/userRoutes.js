@@ -11,7 +11,7 @@ import {
   updateUserById,
 } from "../controllers/userController.js";
 
-import { authenticate, authorizeAdmin } from "../middleware/authMiddleware.js";
+import { authenticate, authorizeAdmin } from "../middleware/authmiddleware.js";
 
 const router = express.Router();
 
