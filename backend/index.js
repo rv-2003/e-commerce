@@ -28,7 +28,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://e-commerce-kappa-orpin-58.vercel.app", // <-- replace if different
+      "https://e-commerce-t6nf.vercel.app/l  ", // <-- replace if different
     ],
     credentials: true,
   })
