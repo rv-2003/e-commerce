@@ -100,7 +100,7 @@ export default function Login() {
 
         <Typography textAlign="center" mt={2}>
           Don’t have an account?{" "}
-          <Link component="button" onClick={() => navigate("/signup")}>
+          <Link component="button" onClick={() => navigate("/register")}>
             Sign up
           </Link>
         </Typography>
