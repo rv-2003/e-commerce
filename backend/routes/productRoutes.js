@@ -16,7 +16,7 @@ import {
 } from "../controllers/productController.js";
 
 import { authenticate, authorizeAdmin } from "../middleware/authmiddleware.js";
-import checkId from "../middleware/checkId.js";
+import checkId from "../middleware/checkid.js";
 import upload from "../middleware/uploadmiddleware.js"; // 👈 IMPORT MULTER
 
 // CREATE + LIST
