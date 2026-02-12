@@ -13,7 +13,7 @@ import {
   markOrderAsDelivered,
 } from "../controllers/orderController.js";
 
-import { authenticate, authorizeAdmin } from "../middleware/authMiddleware.js";
+import { authenticate, authorizeAdmin } from "../middleware/authmiddleware.js";
 
 router
   .route("/")

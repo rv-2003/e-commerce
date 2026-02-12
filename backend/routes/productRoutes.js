@@ -15,9 +15,9 @@ import {
   filterProducts,
 } from "../controllers/productController.js";
 
-import { authenticate, authorizeAdmin } from "../middleware/authMiddleware.js";
+import { authenticate, authorizeAdmin } from "../middleware/authmiddleware.js";
 import checkId from "../middleware/checkId.js";
-import upload from "../middleware/uploadMiddleware.js"; // 👈 IMPORT MULTER
+import upload from "../middleware/uploadmiddleware.js"; // 👈 IMPORT MULTER
 
 // CREATE + LIST
 router

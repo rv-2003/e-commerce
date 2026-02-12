@@ -9,7 +9,7 @@ import {
   readCategory,
 } from "../controllers/categoryController.js";
 
-import { authenticate, authorizeAdmin } from "../middleware/authMiddleware.js";
+import { authenticate, authorizeAdmin } from "../middleware/authmiddleware.js";
 
 // CREATE + LIST
 router
